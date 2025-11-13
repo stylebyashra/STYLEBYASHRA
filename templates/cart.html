@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Cart - STYLEBYASHRA{% endblock %}
+
+{% block content %}
+<section class="cart-page">
+    <div class="container">
+        <h1 class="page-title">Shopping Cart</h1>
+        
+        {% if cart_items %}
+        <div class="cart-wrapper">
+            <div class="cart-items">
+                {% for item in cart_items %}
+                <div class="cart-item" data-product-id="{{ item.id }}">
+                    <div class="cart-item-image">
+                        <img src="{{ item.image }}" alt="{{ item.name }}">
+                    </div>
+                    <div class="cart-item-info">
+                        <h3>{{ item.name }}</h3>
+                        <p class="cart-item-category">{{ item.category }}</p>
+                        <div class="cart-item-price">
+                            {% if item.discount_price %}
+                            <span class="original-price">৳{{ item.original_price }}</span>
+                            <span class="discount-price">৳{{ item.display_price }}</span>
+                            {% else %}
+                            <span>৳{{ item.display_price }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="cart-item-quantity">
+                        <label>Quantity:</label>
+                        <input type="number" min="1" value="{{ item.quantity }}" 
+                               onchange="updateCartItem({{ item.id }}, this.value)">
+                    </div>
+                    <div class="cart-item-total">
+                        <p class="item-total-price">৳{{ item.display_price * item.quantity }}</p>
+                    </div>
+                    <div class="cart-item-actions">
+                        <button class="btn btn-remove" onclick="removeFromCart({{ item.id }})">Remove</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="cart-summary">
+                <h2>Order Summary</h2>
+                <div class="summary-row">
+                    <span>Subtotal:</span>
+                    <span>৳{{ total }}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Delivery:</span>
+                    <span>Free</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total:</span>
+                    <span>৳{{ total }}</span>
+                </div>
+                <a href="{{ url_for('checkout') }}" class="btn btn-primary btn-large btn-block">Proceed to Checkout</a>
+                <a href="{{ url_for('products') }}" class="btn btn-secondary btn-block">Continue Shopping</a>
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-cart">
+            <h2>Your cart is empty</h2>
+            <p>Start shopping to add items to your cart</p>
+            <a href="{{ url_for('products') }}" class="btn btn-primary">Browse Products</a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateCartItem(productId, quantity) {
+    fetch('/update_cart', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ product_id: productId, quantity: parseInt(quantity) })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to update cart');
+    });
+}
+
+function removeFromCart(productId) {
+    if (confirm('Are you sure you want to remove this item from cart?')) {
+        fetch('/remove_from_cart', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ product_id: productId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to remove item from cart');
+        });
+    }
+}
+</script>
+{% endblock %}
+

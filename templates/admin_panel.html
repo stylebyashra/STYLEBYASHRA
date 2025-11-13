@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - STYLEBYASHRA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-wrapper">
+                <a href="{{ url_for('admin_panel') }}" class="logo">
+                    <span class="logo-text">STYLEBYASHRA</span>
+                    <span style="font-size: 0.8rem; margin-left: 10px; color: var(--text-light);">Admin Panel</span>
+                </a>
+                <ul class="nav-menu">
+                    <li><a href="{{ url_for('admin_panel') }}">Orders</a></li>
+                    <li><a href="{{ url_for('admin_products') }}">Products</a></li>
+                    <li><a href="{{ url_for('home') }}">View Website</a></li>
+                    <li><a href="{{ url_for('admin_logout') }}">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section class="admin-panel-section">
+            <div class="container">
+                <h1 class="page-title">Orders Management</h1>
+                
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                {% if orders %}
+                <div class="admin-orders-table-wrapper">
+                    <table class="admin-orders-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Date</th>
+                                <th>Customer Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>WhatsApp</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Payment</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            <tr>
+                                <td>#{{ order.id }}</td>
+                                <td>{{ order.date }}</td>
+                                <td>{{ order.customer.name }}</td>
+                                <td>{{ order.customer.email }}</td>
+                                <td>{{ order.customer.phone }}</td>
+                                <td>{{ order.customer.whatsapp }}</td>
+                                <td>{{ order['items']|length }} item(s)</td>
+                                <td>৳{{ order.total }}</td>
+                                <td>{{ order.payment_method|title }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ order.status.lower() }}">
+                                        {{ order.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('admin_order_detail', order_id=order.id) }}" class="btn btn-small">View</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <h2>No orders yet</h2>
+                    <p>Orders will appear here once customers place them.</p>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+</body>
+</html>
+

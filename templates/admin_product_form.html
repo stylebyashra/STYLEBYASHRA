@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if product %}Edit Product{% else %}Add Product{% endif %} - STYLEBYASHRA Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-wrapper">
+                <a href="{{ url_for('admin_panel') }}" class="logo">
+                    <span class="logo-text">STYLEBYASHRA</span>
+                    <span style="font-size: 0.8rem; margin-left: 10px; color: var(--text-light);">Admin Panel</span>
+                </a>
+                <ul class="nav-menu">
+                    <li><a href="{{ url_for('admin_panel') }}">Orders</a></li>
+                    <li><a href="{{ url_for('admin_products') }}">Products</a></li>
+                    <li><a href="{{ url_for('home') }}">View Website</a></li>
+                    <li><a href="{{ url_for('admin_logout') }}">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section class="admin-panel-section">
+            <div class="container">
+                <h1 class="page-title">{% if product %}Edit Product{% else %}Add New Product{% endif %}</h1>
+                
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <div class="admin-product-form-wrapper">
+                    <form method="POST" class="admin-product-form">
+                        <div class="form-group">
+                            <label for="name">Product Name *</label>
+                            <input type="text" id="name" name="name" value="{% if product %}{{ product.name }}{% endif %}" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="price">Price (৳) *</label>
+                                <input type="number" id="price" name="price" step="0.01" min="0" value="{% if product %}{{ product.price }}{% endif %}" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="discount_price">Discount Price (৳)</label>
+                                <input type="number" id="discount_price" name="discount_price" step="0.01" min="0" value="{% if product and product.discount_price %}{{ product.discount_price }}{% endif %}" placeholder="Optional">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="category">Category *</label>
+                            <select id="category" name="category" required>
+                                <option value="">Select Category</option>
+                                <option value="Traditional" {% if product and product.category == 'Traditional' %}selected{% endif %}>Traditional</option>
+                                <option value="Casual" {% if product and product.category == 'Casual' %}selected{% endif %}>Casual</option>
+                                <option value="Western" {% if product and product.category == 'Western' %}selected{% endif %}>Western</option>
+                                <option value="Party" {% if product and product.category == 'Party' %}selected{% endif %}>Party</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="description">Description *</label>
+                            <textarea id="description" name="description" rows="4" required>{% if product %}{{ product.description }}{% endif %}</textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="image_url">Image URL or Upload Image *</label>
+                            <div class="image-upload-section">
+                                <input type="text" id="image_url" name="image_url" value="{% if product %}{{ product.image }}{% endif %}" placeholder="Enter image URL, paste base64 image data, or upload file" required>
+                                <p style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.5rem;">
+                                    💡 Tip: Paste any image URL, upload a file, or use base64 data. Small images (&lt;1MB) can be saved directly.
+                                </p>
+                                <div class="image-preview-wrapper">
+                                    <p style="margin-bottom: 0.5rem; font-weight: 500;">Image Preview:</p>
+                                    <div id="image-preview" class="image-preview">
+                                        {% if product %}
+                                        <img src="{{ product.image }}" alt="Preview" id="preview-img">
+                                        {% else %}
+                                        <p style="color: var(--text-light);">No image selected</p>
+                                        {% endif %}
+                                    </div>
+                                    <input type="file" id="image-file-input" accept="image/*" style="margin-top: 1rem;">
+                                    <button type="button" id="convert-image-btn" class="btn btn-secondary" style="margin-top: 0.5rem;">Convert Image to URL (Optional)</button>
+                                    <p style="font-size: 0.75rem; color: var(--text-light); margin-top: 0.5rem;">
+                                        Note: For large images, get a free API key from <a href="https://api.imgbb.com/" target="_blank">imgbb.com</a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary btn-large">{% if product %}Update Product{% else %}Add Product{% endif %}</button>
+                            <a href="{{ url_for('admin_products') }}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Image preview and conversion
+        const imageUrlInput = document.getElementById('image_url');
+        const imageFileInput = document.getElementById('image-file-input');
+        const imagePreview = document.getElementById('image-preview');
+        const convertBtn = document.getElementById('convert-image-btn');
+        
+        // Update preview when URL changes
+        imageUrlInput.addEventListener('input', function() {
+            const url = this.value.trim();
+            if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = 'Preview';
+                img.id = 'preview-img';
+                img.style.maxWidth = '100%';
+                img.style.height = 'auto';
+                img.style.borderRadius = '5px';
+                imagePreview.innerHTML = '';
+                imagePreview.appendChild(img);
+            } else if (url.startsWith('data:image')) {
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = 'Preview';
+                img.id = 'preview-img';
+                img.style.maxWidth = '100%';
+                img.style.height = 'auto';
+                img.style.borderRadius = '5px';
+                imagePreview.innerHTML = '';
+                imagePreview.appendChild(img);
+            }
+        });
+        
+        // Handle file input
+        imageFileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64 = e.target.result;
+                    imageUrlInput.value = base64;
+                    const img = document.createElement('img');
+                    img.src = base64;
+                    img.alt = 'Preview';
+                    img.id = 'preview-img';
+                    img.style.maxWidth = '100%';
+                    img.style.height = 'auto';
+                    img.style.borderRadius = '5px';
+                    imagePreview.innerHTML = '';
+                    imagePreview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // Convert image to URL using API
+        convertBtn.addEventListener('click', async function() {
+            const imageData = imageUrlInput.value.trim();
+            if (!imageData) {
+                alert('Please select an image first');
+                return;
+            }
+            
+            if (imageData.startsWith('http://') || imageData.startsWith('https://')) {
+                alert('Image is already a URL');
+                return;
+            }
+            
+            // Check if it's a data URI - these can be used directly for small images
+            if (imageData.startsWith('data:image')) {
+                const sizeMB = (imageData.length * 3) / 4 / 1024 / 1024; // Approximate size
+                if (sizeMB < 1) {
+                    if (confirm('Small images can be saved directly. For larger images, you need an API key. Continue with direct save?')) {
+                        // Data URI is fine, just update preview
+                        const img = document.createElement('img');
+                        img.src = imageData;
+                        img.alt = 'Preview';
+                        img.id = 'preview-img';
+                        img.style.maxWidth = '100%';
+                        img.style.height = 'auto';
+                        img.style.borderRadius = '5px';
+                        imagePreview.innerHTML = '';
+                        imagePreview.appendChild(img);
+                        alert('Image ready! Small images can be saved directly. For larger images, get a free API key from https://api.imgbb.com/');
+                        return;
+                    }
+                }
+            }
+            
+            convertBtn.disabled = true;
+            convertBtn.textContent = 'Converting...';
+            
+            try {
+                const response = await fetch('/admin/upload_image', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ image: imageData })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.url) {
+                    imageUrlInput.value = data.url;
+                    const img = document.createElement('img');
+                    img.src = data.url;
+                    img.alt = 'Preview';
+                    img.id = 'preview-img';
+                    img.style.maxWidth = '100%';
+                    img.style.height = 'auto';
+                    img.style.borderRadius = '5px';
+                    imagePreview.innerHTML = '';
+                    imagePreview.appendChild(img);
+                    alert('Image converted to URL successfully!');
+                } else {
+                    const errorMsg = data.error || 'Unknown error';
+                    alert('Failed to convert image: ' + errorMsg + '\n\nTip: You can use the base64 data URI directly for small images, or get a free API key from https://api.imgbb.com/');
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('Error converting image: ' + error.message + '\n\nTip: You can use the base64 data URI directly for small images, or paste a direct image URL.');
+            } finally {
+                convertBtn.disabled = false;
+                convertBtn.textContent = 'Convert Image to URL';
+            }
+        });
+    </script>
+</body>
+</html>
+

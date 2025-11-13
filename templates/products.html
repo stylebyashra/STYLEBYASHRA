@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Products - STYLEBYASHRA{% endblock %}
+
+{% block content %}
+<section class="products-page">
+    <div class="container">
+        <h1 class="page-title">Our Products</h1>
+        
+        <div class="filter-section">
+            <button class="filter-btn active" onclick="filterProducts('')">All</button>
+            <button class="filter-btn" onclick="filterProducts('Traditional')">Traditional</button>
+            <button class="filter-btn" onclick="filterProducts('Casual')">Casual</button>
+            <button class="filter-btn" onclick="filterProducts('Western')">Western</button>
+            <button class="filter-btn" onclick="filterProducts('Party')">Party</button>
+        </div>
+
+        <div class="products-grid">
+            {% for product in products %}
+            <div class="product-card" data-category="{{ product.category }}">
+                <div class="product-image">
+                    <img src="{{ product.image }}" alt="{{ product.name }}" loading="lazy">
+                    <div class="product-overlay">
+                        <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-small">View Details</a>
+                    </div>
+                </div>
+                <div class="product-info">
+                    <h3 class="product-name">{{ product.name }}</h3>
+                    <p class="product-category">{{ product.category }}</p>
+                    <div class="product-price">
+                        {% if product.discount_price %}
+                        <span class="original-price">৳{{ product.price }}</span>
+                        <span class="discount-price">৳{{ product.discount_price }}</span>
+                        {% else %}
+                        <span>৳{{ product.price }}</span>
+                        {% endif %}
+                    </div>
+                    <button class="btn btn-add-cart" onclick="addToCart({{ product.id }})">Add to Cart</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterProducts(category) {
+    const buttons = document.querySelectorAll('.filter-btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    const productCards = document.querySelectorAll('.product-card');
+    productCards.forEach(card => {
+        if (category === '' || card.dataset.category === category) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function addToCart(productId) {
+    fetch('/add_to_cart', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ product_id: productId, quantity: 1 })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('cart-count').textContent = data.cart_count;
+            alert('Product added to cart!');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to add product to cart');
+    });
+}
+</script>
+{% endblock %}
+

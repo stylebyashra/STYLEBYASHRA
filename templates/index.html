@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}STYLEBYASHRA - Premium Fashion for Bangladesh{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-content">
+        <h1 class="hero-title">Welcome to STYLEBYASHRA</h1>
+        <p class="hero-subtitle">Discover Premium Fashion for the Modern Bangladeshi Woman</p>
+        <a href="{{ url_for('products') }}" class="btn btn-primary">Shop Now</a>
+    </div>
+</section>
+
+<section class="featured-section">
+    <div class="container">
+        <h2 class="section-title">Featured Products</h2>
+        <div class="products-grid">
+            {% for product in products[:4] %}
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="{{ product.image }}" alt="{{ product.name }}" loading="lazy">
+                    <div class="product-overlay">
+                        <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-small">View Details</a>
+                    </div>
+                </div>
+                <div class="product-info">
+                    <h3 class="product-name">{{ product.name }}</h3>
+                    <p class="product-category">{{ product.category }}</p>
+                    <div class="product-price">
+                        {% if product.discount_price %}
+                        <span class="original-price">৳{{ product.price }}</span>
+                        <span class="discount-price">৳{{ product.discount_price }}</span>
+                        {% else %}
+                        <span>৳{{ product.price }}</span>
+                        {% endif %}
+                    </div>
+                    <button class="btn btn-add-cart" onclick="addToCart({{ product.id }})">Add to Cart</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center" style="margin-top: 3rem;">
+            <a href="{{ url_for('products') }}" class="btn btn-secondary">View All Products</a>
+        </div>
+    </div>
+</section>
+
+<section class="features-section">
+    <div class="container">
+        <div class="features-grid">
+            <div class="feature-item">
+                <div class="feature-icon">🚚</div>
+                <h3>Free Delivery</h3>
+                <p>Free delivery across Bangladesh</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">💳</div>
+                <h3>Secure Payment</h3>
+                <p>Safe and secure payment options</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">↩️</div>
+                <h3>Easy Returns</h3>
+                <p>7-day return policy</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">⭐</div>
+                <h3>Quality Assured</h3>
+                <p>Premium quality products</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function addToCart(productId) {
+    fetch('/add_to_cart', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ product_id: productId, quantity: 1 })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('cart-count').textContent = data.cart_count;
+            alert('Product added to cart!');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to add product to cart');
+    });
+}
+</script>
+{% endblock %}
+

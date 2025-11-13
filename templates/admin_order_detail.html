@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order #{{ order.id }} - STYLEBYASHRA Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-wrapper">
+                <a href="{{ url_for('admin_panel') }}" class="logo">
+                    <span class="logo-text">STYLEBYASHRA</span>
+                    <span style="font-size: 0.8rem; margin-left: 10px; color: var(--text-light);">Admin Panel</span>
+                </a>
+                <ul class="nav-menu">
+                    <li><a href="{{ url_for('admin_panel') }}">Orders</a></li>
+                    <li><a href="{{ url_for('admin_products') }}">Products</a></li>
+                    <li><a href="{{ url_for('admin_logout') }}">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section class="admin-order-detail-section">
+            <div class="container">
+                <h1 class="page-title">Order #{{ order.id }}</h1>
+                
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <div class="admin-order-detail-wrapper">
+                    <div class="admin-order-info">
+                        <div class="admin-order-card">
+                            <h2>Order Information</h2>
+                            <div class="info-row">
+                                <span class="info-label">Order ID:</span>
+                                <span class="info-value">#{{ order.id }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Date:</span>
+                                <span class="info-value">{{ order.date }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Status:</span>
+                                <span class="info-value">
+                                    <span class="status-badge status-{{ order.status.lower() }}">
+                                        {{ order.status }}
+                                    </span>
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Payment Method:</span>
+                                <span class="info-value">{{ order.payment_method|title }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Total Amount:</span>
+                                <span class="info-value" style="font-size: 1.5rem; color: var(--primary-color); font-weight: 700;">৳{{ order.total }}</span>
+                            </div>
+                            
+                            <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}" class="status-update-form">
+                                <div class="form-group">
+                                    <label for="status">Update Status:</label>
+                                    <select id="status" name="status" class="status-select">
+                                        <option value="Pending" {% if order.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                        <option value="Processing" {% if order.status == 'Processing' %}selected{% endif %}>Processing</option>
+                                        <option value="Shipped" {% if order.status == 'Shipped' %}selected{% endif %}>Shipped</option>
+                                        <option value="Delivered" {% if order.status == 'Delivered' %}selected{% endif %}>Delivered</option>
+                                        <option value="Cancelled" {% if order.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Update Status</button>
+                            </form>
+                        </div>
+                        
+                        <div class="admin-order-card">
+                            <h2>Customer Information</h2>
+                            <div class="info-row">
+                                <span class="info-label">Name:</span>
+                                <span class="info-value">{{ order.customer.name }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Email:</span>
+                                <span class="info-value">
+                                    <a href="mailto:{{ order.customer.email }}">{{ order.customer.email }}</a>
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Phone:</span>
+                                <span class="info-value">
+                                    <a href="tel:{{ order.customer.phone }}">{{ order.customer.phone }}</a>
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">WhatsApp:</span>
+                                <span class="info-value">
+                                    <a href="https://wa.me/{{ order.customer.whatsapp|replace('+', '')|replace(' ', '')|replace('-', '') }}" target="_blank">
+                                        {{ order.customer.whatsapp }}
+                                    </a>
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Address:</span>
+                                <span class="info-value">{{ order.customer.address }}, {{ order.customer.city }}, {{ order.customer.postal }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-order-items">
+                        <h2>Order Items</h2>
+                        <div class="admin-order-items-list">
+                            {% for item in order['items'] %}
+                            <div class="admin-order-item">
+                                <div class="admin-order-item-image">
+                                    <img src="{{ item.image }}" alt="{{ item.name }}">
+                                </div>
+                                <div class="admin-order-item-details">
+                                    <h3>{{ item.name }}</h3>
+                                    <p>Quantity: {{ item.quantity }}</p>
+                                    <p>Price: ৳{{ item.price }} each</p>
+                                </div>
+                                <div class="admin-order-item-total">
+                                    <p>৳{{ item.price * item.quantity }}</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="admin-order-summary">
+                            <div class="summary-row">
+                                <span>Subtotal:</span>
+                                <span>৳{{ order.total }}</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Delivery:</span>
+                                <span>Free</span>
+                            </div>
+                            <div class="summary-row total">
+                                <span>Total:</span>
+                                <span>৳{{ order.total }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
+
