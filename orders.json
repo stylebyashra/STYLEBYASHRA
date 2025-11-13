@@ -1,0 +1,27 @@
+[
+  {
+    "id": 1,
+    "date": "2025-11-13 08:38:48",
+    "customer": {
+      "name": "khan ",
+      "email": "sanjranisanjrani925@gmail.com",
+      "phone": "+8805645652",
+      "whatsapp": "+8805645652",
+      "address": "shahdadpur",
+      "city": "dhaka",
+      "postal": "8080"
+    },
+    "items": [
+      {
+        "id": 1,
+        "name": "Elegant Saree Collection",
+        "price": 3500,
+        "quantity": 2,
+        "image": "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400"
+      }
+    ],
+    "total": 7000,
+    "payment_method": "cash",
+    "status": "Processing"
+  }
+]
